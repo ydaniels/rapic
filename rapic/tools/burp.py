@@ -85,8 +85,8 @@ def create_endpoint(request_item):
             d['is_json'] = True
         d['url'] = unquote(url)
         d['url_query'] = url_data
-        d['url_params'] = url.params
-        d['url_fragment'] = url.fragment
+        d['url_params'] = urlparse(url).params
+        d['url_fragment'] = urlparse(url).fragment
         d['headers'] = head
         d['do_extra_requests'] = False
         d['do_implicit_requests'] = False
