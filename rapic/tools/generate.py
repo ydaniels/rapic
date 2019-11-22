@@ -17,8 +17,6 @@ def burp_request_files(client_name, burp_xml_files_loc):
             if not isinstance(request_items, list):
                 request_items = request_items['item']
             endpoint = create_endpoint(request_items)
-            print(endpoint)
-
             total_page_reqs = total_page_reqs + endpoint['total_requests']
             request_load[page] = endpoint
     request_load['total_client_requests'] =  total_page_reqs
