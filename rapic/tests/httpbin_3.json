@@ -1,0 +1,44 @@
+{
+  "httpbin": {
+    "pages": [
+      "http_methods"
+    ],
+    "http_methods": {
+      "post_method": {
+        "path": "/post",
+        "method": "POST",
+        "url": "http://httpbin.org/post",
+        "url_query": {
+        },
+        "data": {
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      },
+      "get_my_ip": {
+        "path": "/ip",
+        "method": "GET"
+      },
+      "delete_method": {
+        "path": "/delete",
+        "host": "httpbin.org",
+        "scheme": "http",
+        "method": "DELETE",
+        "is_json": true,
+        "url": "http://httpbin.org/delete",
+        "url_query": {
+        },
+        "data": {
+          "username": "rapic"
+        },
+        "headers": {
+        },
+        "do_extra_requests": true,
+        "extra_request_names": [
+          "get_my_ip"
+        ]
+      }
+    }
+  }
+}

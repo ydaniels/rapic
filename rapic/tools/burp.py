@@ -55,8 +55,6 @@ def get_header(header):
 
 def create_endpoint(request_item):
     endpoint = {}
-    implicit_requests = []
-    requests = []
     if not isinstance(request_item, list):
         request_item = [request_item]
     request_num = 1
@@ -77,18 +75,21 @@ def create_endpoint(request_item):
         if body_data_text and len(body_data_text) > 0:
             post_data = get_body_data(body_data_text[0])
         d = dict()
+        d['path'] = path
         d['host'] = location
         d['scheme'] = scheme
-        d['path'] = path
         d['method'] = method
-        d['body_data'] = post_data
-        d['body_is_json'] = False
+        d['data'] = post_data
+        d['is_json'] = False
         if isinstance(post_data, str):
-            d['body_is_json'] = True
+            d['is_json'] = True
         d['url'] = unquote(url)
-        d['url_data'] = url_data
+        d['url_query'] = url_data
+        d['url_params'] = url.params
+        d['url_fragment'] = url.fragment
         d['headers'] = head
         d['do_extra_requests'] = False
+        d['do_implicit_requests'] = False
         d['extra_request_names'] = []
         endpoint['request_%s'% request_num] = d
         request_num += 1

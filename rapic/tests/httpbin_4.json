@@ -1,0 +1,43 @@
+{
+  "httpbin": {
+    "get_my_ip": {
+      "host": "httpbin.org",
+      "scheme": "http",
+      "path": "/ip",
+      "method": "GET"
+    },
+    "test_post_method": {
+      "path": "/post",
+      "host": "httpbin.org",
+      "scheme": "http",
+      "method": "POST",
+      "is_json": false,
+      "url": "http://httpbin.org/post",
+      "url_query": {
+      },
+      "data": {
+      },
+      "headers": {
+      },
+      "do_implicit_requests": true
+    },
+    "get_user_my_agent": {
+      "path": "/user-agent",
+      "host": "httpbin.org",
+      "scheme": "http",
+      "method": "GET",
+      "is_json": false,
+      "url_fragment" : "logged",
+      "data": {
+      },
+      "headers": {
+        "user-agent": "This is a fake user agent"
+      }
+
+    },
+    "implicit_requests": [
+      "get_my_ip",
+      "get_user_my_agent"
+    ]
+  }
+}

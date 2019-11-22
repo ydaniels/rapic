@@ -1,5 +1,4 @@
 from rapic.connection.request import RequestClient
-from urllib.parse import urlsplit, urlunparse, ParseResult
 
 
 class APIHook:
@@ -180,64 +179,6 @@ class APIHook:
             cls.register_client_hooks(hook_type=cls.HEADER_HOOK_TYPE, requests=requests, client_name=client, func=func)
 
         return req_func
-
-    @staticmethod
-    def _append_data_to_url(url, data):
-        if not data:
-            return url
-        for k, v in data.items():
-            url = url + '&' + k + '=' + v
-        return url
-
-    def execute_request(self, request, headers=None, url_data=None, post_data=None, append_url=None):
-        """
-         Takes a request and execute the request using created session from RequestClient
-         you can also pass headers, url data,  post data directly to override headers saved in the rapic json file.
-         Hooks registered by API Client will be called here with the appropriate data
-
-        :param request: The saved rapic request that should be performed
-        :param headers: Headers to over-ride saved headers in json file
-        :param url_data: Url data to over-ride saved default url data
-        :param post_data: Post data to over-ride saved body fields
-        :param append_url: you can update external field not recorded in the json file using append_url dict
-                           E.G append_url = {'load_false':1} will url  = url + ?load_false=1
-        :return: Response Object
-        """
-
-        request_name = request['request_name']
-
-        path = request['path'].format(url_data)
-        url_schema = urlsplit(request['url'])
-        query = url_schema.query
-        if url_data:
-            query = query.format(url_data)
-
-        url = urlunparse(
-            ParseResult(netloc=request['host'], scheme=request['scheme'], path=path, query=query, params=None,
-                        fragment=''))
-
-        url = self._append_data_to_url(url, append_url)
-
-        # Run client registered function before a request is performed
-        # function registered as header,url, post hooks will recieve headers, url data, post data as an arguement
-        # while the ones register as request  hook will recieve the full request before it is sent
-        # They can do whatever they want with it and must return it back as this will be set as the new
-        # data for each of them respectively before the request is being done
-        new_header = self._run_hook_func(request_name, headers or request['headers'], self.HEADER_HOOK_TYPE)
-        new_url_data = self._run_hook_func(request_name, url_data or request['url_data'], self.URL_DATA_HOOK_TYPE)
-        new_post_data = self._run_hook_func(request_name, post_data or request['body_data'], self.POST_DATA_HOOK_TYPE)
-
-        request['url'] = url
-        request['headers'].update(new_header)
-        request['url_data'].update(new_url_data)
-        request['body_data'].update(new_post_data)
-
-        request = self._run_hook_func(request_name, request, self.REQUEST_HOOK_TYPE)
-        prep_req_obj = self.s.prepare_requests_request(request)
-        new_req_obj = self._run_hook_func(request_name, prep_req_obj, self.REQUESTS_OBJ_HOOK_TYPE)
-        response = self.s.execute(new_req_obj)
-        response = self._run_hook_func(request_name, response, self.RESPONSE_OBJ_HOOK_TYPE)
-        return response
 
     def _run_hook_func(self, request_name, data, hook_type):
         """

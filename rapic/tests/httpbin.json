@@ -1,0 +1,45 @@
+{
+  "httpbin": {
+    "host": "httpbin.org",
+    "scheme": "http",
+    "default_headers": {
+      "All-Request-Headers": "Will_have_this_header"
+    },
+    "default_url_query": {
+      "All-Request-Url": "Will_have_value_appended"
+    },
+    "default_url_params": {
+       "All-Request-Url": "Will_have_value_appended"
+    },
+     "default_url_fragment": {
+       "All-Request-Url": "Will_have_value_appended"
+    },
+    "default_data": {
+      "All-Body": "Will_have_value_included_in_their_data"
+    },
+    "get_my_ip": {
+      "path": "/ip",
+      "method": "GET"
+    },
+    "get_my_headers": {
+      "path": "/headers",
+      "host": "httpbin.org",
+      "scheme": "http",
+      "method": "GET",
+      "is_json": false,
+      "url": "http://httpbin.org/headers",
+      "url_query": {
+        "custom": "specific_to_this_request"
+      },
+      "url_params": {
+        "custom": "specific_to_this_request"
+      },
+      "url_fragment": "",
+      "data": {
+      },
+      "headers": {
+        "All-Request-Headers": "Overide_All_Previous_Headers"
+      }
+    }
+  }
+}

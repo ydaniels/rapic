@@ -1,0 +1,25 @@
+{
+  "httpbin": {
+    "host": "httpbin.org",
+    "scheme": "http",
+    "get_my_ip": {
+      "url" : "http://httpbin.org/ip",
+      "method": "GET"
+    },
+    "get_my_headers": {
+      "path": "/headers",
+      "host": "httpbin.org",
+      "scheme": "http",
+      "method": "GET",
+      "url": "http://httpbin.org/headers",
+      "url_query": {
+        "custom": "specific_to_this_request"
+      },
+        "data": {
+       },
+       "headers": {
+          "Content-Type": "application/json"
+        }
+    }
+  }
+}
