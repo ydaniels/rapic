@@ -1,0 +1,261 @@
+from rapic.connection.request import RequestClient
+from urllib.parse import urlsplit, urlunparse, ParseResult
+
+
+class APIHook:
+    """Allow access to necessary requests data by giving a client the ability to hook
+        request and response data before it is sent to or returned from a server.
+        There are 6 different hook type which determines what data is sent to the client for hooking
+         REQUEST_HOOK_TYPE : A dictionary that contains parsed api client req dict
+         HEADER_HOOK_TYPE :  Header dict
+         URL_DATA_HOOK_TYPE : Url args and values as dict
+         POST_DATA_HOOK_TYPE : Body data as dict
+         REQUESTS_OBJ_HOOK_TYPE : Python-Requests prepared request obj
+         RESPONSE_OBJ_HOOK_TYPE : Python-Requests response obj
+    """
+    HOOK_STORE = {}
+
+    REQUEST_HOOK_TYPE = 1
+    HEADER_HOOK_TYPE = 2
+    URL_DATA_HOOK_TYPE = 3
+    POST_DATA_HOOK_TYPE = 4
+    REQUESTS_OBJ_HOOK_TYPE = 5
+    RESPONSE_OBJ_HOOK_TYPE = 6
+
+    def __init__(self, name, **kwargs):
+
+        self.name = name
+
+        self.s = RequestClient(name, **kwargs)
+
+    @classmethod
+    def create_type_hooks_store(cls, hook_type):
+
+        cls.HOOK_STORE[hook_type] = dict()
+
+    @classmethod
+    def create_client_hooks_store(cls, hook_type, client_name):
+        """
+        Create an empty dict to hold hooks per client per hook type
+
+        :param client_name: The api client that hook belongs to
+        :param hook_type: The hook type store
+        :return:
+        """
+
+        cls.HOOK_STORE[hook_type][client_name] = dict()
+
+    @classmethod
+    def register_client_hooks(cls, hook_type, requests, client_name, func):
+        """
+            Save all hooks and functions per client per hook type that are going
+            to be called for a client before a request is made
+
+        :param hook_type: The hook_type that is being performed
+        :param requests: List of requests name that the hook is registered for, this can also be ['*'] to register
+                        for all requests made by the client
+        :param client_name: The api client this hook is registered for
+        :param func: The function to call for the hook
+        :return: decorated func
+        """
+        if not requests:
+            return
+
+        if hook_type not in cls.HOOK_STORE:
+            cls.create_type_hooks_store(hook_type)
+        if client_name not in cls.HOOK_STORE[hook_type]:
+            cls.create_client_hooks_store(hook_type, client_name)
+
+        if not isinstance(requests, list):
+            requests = [requests]
+
+        for request in requests:
+
+            if request not in cls.HOOK_STORE[hook_type][client_name]:
+                cls.HOOK_STORE[hook_type][client_name][request] = [func]
+            else:
+                cls.HOOK_STORE[hook_type][client_name][request].append(func)
+
+        def action_arg(*args, **kwargs):
+            func(*args, **kwargs)
+
+        return action_arg
+
+    @classmethod
+    def hook_client_requests_obj(cls, client, requests):
+        """
+        This gives the ability to hook a python-requests obj before its sent.
+         the registered callback function will recieve the prepared request object before sending it to the server.
+        more at https://requests.kennethreitz.org/en/master/user/advanced/#prepared-requests
+        :param client: the client to perform the hook for
+        :param requests: list of request
+        :return: decorated func
+        """
+
+        def request_func(func):
+            cls.register_client_hooks(hook_type=cls.REQUESTS_OBJ_HOOK_TYPE, requests=requests, client_name=client,
+                                      func=func)
+
+        return request_func
+
+    @classmethod
+    def hook_client_response_obj(cls, client, requests):
+        """
+        This gives the ability to hook the return python-requests response obj
+        :param client: the client to perform the hook for
+        :param requests: list of request
+        :return: decorated func
+        """
+
+        def request_func(func):
+            cls.register_client_hooks(hook_type=cls.RESPONSE_OBJ_HOOK_TYPE, requests=requests, client_name=client,
+                                      func=func)
+
+        return request_func
+
+    @classmethod
+    def hook_client_request(cls, client, requests):
+        """
+        This gives the ability to hook a full request in internal api client before its transformed
+        to python-requests prepared requests
+         the registered callback function will recieve all the datas before performing actual request.
+
+        :param client: the client to perform the hook for
+        :param requests: list of request
+        :return:
+        """
+
+        def request_func(func):
+            cls.register_client_hooks(hook_type=cls.REQUEST_HOOK_TYPE, requests=requests, client_name=client, func=func)
+
+        return request_func
+
+    @classmethod
+    def hook_url_data(cls, client, requests):
+        """
+        Run user hooks when generating url data
+        :param client: the client to perform the hook for
+        :param requests: List of requests to run for
+        :return:
+        """
+
+        def request_func(func):
+            cls.register_client_hooks(hook_type=cls.URL_DATA_HOOK_TYPE, requests=requests, client_name=client,
+                                      func=func)
+
+        return request_func
+
+    @classmethod
+    def hook_post_data(cls, client, requests):
+        """
+        Run user hooks on request body when posting, deleting or putting data to a server
+        :param client:
+        :param requests:
+        :return:
+        """
+
+        def action_function(request_func):
+            cls.register_client_hooks(hook_type=cls.POST_DATA_HOOK_TYPE, requests=requests, client_name=client,
+                                      func=request_func)
+
+        return action_function
+
+    @classmethod
+    def hook_header(cls, client, requests):
+        """
+         Register client func to run and process request header before making actual request to the server
+         Good for including timestamp or signature that must be present in headers along with a particular requests
+
+         @cls.hook_header(client='instagram', requests=['get_followers'])
+         def set_time_stamp(data, **kwargs):
+            data['timestamp'] = time.time()
+            return data
+        The current time stamp will be set in headers when get_followers request is made
+        :param client: client to register this header
+        :param requests: list of request name to to run this hook for e.g ['get_user_info']
+        :return:
+        """
+
+        def req_func(func):
+            cls.register_client_hooks(hook_type=cls.HEADER_HOOK_TYPE, requests=requests, client_name=client, func=func)
+
+        return req_func
+
+    @staticmethod
+    def _append_data_to_url(url, data):
+        if not data:
+            return url
+        for k, v in data.items():
+            url = url + '&' + k + '=' + v
+        return url
+
+    def execute_request(self, request, headers=None, url_data=None, post_data=None, append_url=None):
+        """
+         Takes a request and execute the request using created session from RequestClient
+         you can also pass headers, url data,  post data directly to override headers saved in the rapic json file.
+         Hooks registered by API Client will be called here with the appropriate data
+
+        :param request: The saved rapic request that should be performed
+        :param headers: Headers to over-ride saved headers in json file
+        :param url_data: Url data to over-ride saved default url data
+        :param post_data: Post data to over-ride saved body fields
+        :param append_url: you can update external field not recorded in the json file using append_url dict
+                           E.G append_url = {'load_false':1} will url  = url + ?load_false=1
+        :return: Response Object
+        """
+
+        request_name = request['request_name']
+
+        path = request['path'].format(url_data)
+        url_schema = urlsplit(request['url'])
+        query = url_schema.query
+        if url_data:
+            query = query.format(url_data)
+
+        url = urlunparse(
+            ParseResult(netloc=request['host'], scheme=request['scheme'], path=path, query=query, params=None,
+                        fragment=''))
+
+        url = self._append_data_to_url(url, append_url)
+
+        # Run client registered function before a request is performed
+        # function registered as header,url, post hooks will recieve headers, url data, post data as an arguement
+        # while the ones register as request  hook will recieve the full request before it is sent
+        # They can do whatever they want with it and must return it back as this will be set as the new
+        # data for each of them respectively before the request is being done
+        new_header = self._run_hook_func(request_name, headers or request['headers'], self.HEADER_HOOK_TYPE)
+        new_url_data = self._run_hook_func(request_name, url_data or request['url_data'], self.URL_DATA_HOOK_TYPE)
+        new_post_data = self._run_hook_func(request_name, post_data or request['body_data'], self.POST_DATA_HOOK_TYPE)
+
+        request['url'] = url
+        request['headers'].update(new_header)
+        request['url_data'].update(new_url_data)
+        request['body_data'].update(new_post_data)
+
+        request = self._run_hook_func(request_name, request, self.REQUEST_HOOK_TYPE)
+        prep_req_obj = self.s.prepare_requests_request(request)
+        new_req_obj = self._run_hook_func(request_name, prep_req_obj, self.REQUESTS_OBJ_HOOK_TYPE)
+        response = self.s.execute(new_req_obj)
+        response = self._run_hook_func(request_name, response, self.RESPONSE_OBJ_HOOK_TYPE)
+        return response
+
+    def _run_hook_func(self, request_name, data, hook_type):
+        """
+        All hooks are registered from child  api client in format
+        cls.hook_<hook_type>(client_name='instagram', requests_name=['get_user']) :
+        The registered function will be called here with the necessary data
+        :param request_name:  the current request_name hook is running for
+        :param data: data that will be sent for hooking [headers,post data, url data, req obj, resp obj]
+        :return: reformed data sent back
+        """
+
+        if hook_type not in self.HOOK_STORE or self.name not in self.HOOK_STORE[hook_type]:
+            return data
+        hook_type_store = self.HOOK_STORE[hook_type][self.name]
+
+        if request_name not in hook_type_store and '*' not in hook_type_store:
+            return data
+        hook_funcs = hook_type_store.get(request_name, None) or hook_type_store.get('*')
+        for func in hook_funcs:
+            data = func(data, request_name=request_name, client_name=self.name, hook_type=hook_type)
+        return data
