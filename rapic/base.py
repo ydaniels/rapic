@@ -18,7 +18,7 @@ class BaseClient:
         pass
 
     @abstractmethod
-    def get_request(self, request_name):
+    def get_request_data(self, request_name):
         """
         Get the request with all the  informations (headers, url args) that was saved in burpsuite
         :param request_name:

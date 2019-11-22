@@ -6,7 +6,7 @@ class RequestClient:
 
     def __init__(self, name, **kwargs):
         self.name = name
-        self.s = kwargs.get('session') or requests.Session()
+        self.session = kwargs.pop('session', None) or requests.Session()
         self.request_kwargs = kwargs
 
     def prepare_requests_request(self, request):
@@ -21,7 +21,7 @@ class RequestClient:
         headers = self.clean_headers(request['headers'])
         data = request['body_data']
         req = requests.Request(method, url, data=data, headers=headers)
-        prepped = self.s.prepare_request(req)
+        prepped = self.session.prepare_request(req)
         return prepped
 
     def execute(self, prepped_req):
@@ -30,11 +30,14 @@ class RequestClient:
         :param prepped_req: Hooked  <PreparedRequest>
         :return:  <Response>
         """
-        resp = self.s.send(prepped_req,
-                           **self.request_kwargs
-                           )
+        resp = self.session.send(prepped_req,
+                                 **self.request_kwargs
+                                 )
         return resp
 
     @staticmethod
     def clean_headers(headers):
         return {x.strip(): y.strip() for x, y in headers.items()}
+
+    def close(self):
+        self.session.close()

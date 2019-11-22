@@ -1,6 +1,3 @@
-from rapic.connection.request import RequestClient
-
-
 class APIHook:
     """Allow access to necessary requests data by giving a client the ability to hook
         request and response data before it is sent to or returned from a server.
@@ -24,8 +21,6 @@ class APIHook:
     def __init__(self, name, **kwargs):
 
         self.name = name
-
-        self.s = RequestClient(name, **kwargs)
 
     @classmethod
     def create_type_hooks_store(cls, hook_type):

@@ -1,13 +1,14 @@
 {
   "httpbin": {
     "pages": [
-      "http_methods"
+      "homepage",
+      "second_page"
     ],
-    "http_methods": {
-      "post_method": {
-        "path": "/post",
-        "method": "POST",
-        "url": "http://httpbin.org/post",
+    "homepage": {
+      "test_requests_patch_method": {
+        "path": "/patch",
+        "method": "PATCH",
+        "url": "http://httpbin.org/patch",
         "url_query": {
         },
         "data": {
@@ -19,8 +20,10 @@
       "get_my_ip": {
         "path": "/ip",
         "method": "GET"
-      },
-      "delete_method": {
+      }
+    },
+    "second_page": {
+      "test_requests_delete_method": {
         "path": "/delete",
         "host": "httpbin.org",
         "scheme": "http",

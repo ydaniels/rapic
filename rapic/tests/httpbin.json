@@ -9,11 +9,9 @@
       "All-Request-Url": "Will_have_value_appended"
     },
     "default_url_params": {
-       "All-Request-Url": "Will_have_value_appended"
+
     },
-     "default_url_fragment": {
-       "All-Request-Url": "Will_have_value_appended"
-    },
+     "default_url_fragment": "",
     "default_data": {
       "All-Body": "Will_have_value_included_in_their_data"
     },

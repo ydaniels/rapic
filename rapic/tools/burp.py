@@ -91,9 +91,8 @@ def create_endpoint(request_item):
         d['do_extra_requests'] = False
         d['do_implicit_requests'] = False
         d['extra_request_names'] = []
-        endpoint['request_%s'% request_num] = d
+        endpoint['request_%s' % request_num] = d
         request_num += 1
-
 
     endpoint['total_requests'] = request_num - 1
     endpoint['implicit_requests'] = []

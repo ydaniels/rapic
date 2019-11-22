@@ -6,7 +6,22 @@
       "path": "/ip",
       "method": "GET"
     },
-    "test_post_method": {
+    "test_requests_put_method": {
+      "path": "/put",
+      "host": "httpbin.org",
+      "scheme": "http",
+      "method": "PUT",
+      "is_json": false,
+      "url": "http://httpbin.org/put",
+      "url_query": {
+      },
+      "data": {
+      },
+      "headers": {
+      },
+      "do_implicit_requests": true
+    },
+     "test_requests_post_method": {
       "path": "/post",
       "host": "httpbin.org",
       "scheme": "http",
