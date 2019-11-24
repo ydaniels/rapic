@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 
 def readme():
@@ -22,7 +22,7 @@ setup(name='rapic',
       author='Yomi D',
       author_email='yomid4all@gmail.com',
       license='MIT',
-      packages=['rapic'],
+      packages=  find_packages(),
       include_package_data=True,
       install_requires=[
           'requests',
