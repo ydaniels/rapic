@@ -1,21 +1,36 @@
 {
   "httpbin": {
-    "get_my_ip": {
-      "host": "httpbin.org",
+     "host": "httpbin.org",
       "scheme": "http",
+    "get_my_ip": {
       "path": "/ip",
       "method": "GET"
+    },
+      "test_requests_delete_method": {
+      "path": "/delete",
+      "method": "DELETE"
+    },
+    "test_requests_patch_method": {
+      "path": "/patch",
+      "method": "PATCH",
+      "url_query": {
+      },
+      "data": {
+        "user_name" : "User can overwrite this data"
+      },
+      "headers": {
+      },
+      "do_implicit_requests": true
     },
     "test_requests_put_method": {
       "path": "/put",
       "host": "httpbin.org",
       "scheme": "http",
       "method": "PUT",
-      "is_json": false,
-      "url": "http://httpbin.org/put",
       "url_query": {
       },
       "data": {
+        "user_name" : "User can overwrite this data"
       },
       "headers": {
       },
@@ -26,11 +41,12 @@
       "host": "httpbin.org",
       "scheme": "http",
       "method": "POST",
-      "is_json": false,
-      "url": "http://httpbin.org/post",
+      "is_json": true,
+
       "url_query": {
       },
       "data": {
+        "body" : "Will_be_sent_as_json"
       },
       "headers": {
       },
@@ -43,7 +59,8 @@
       "method": "GET",
       "is_json": false,
       "url_fragment" : "logged",
-      "data": {
+      "url_params": {
+        "parameter_1" : "This one is differeny from url query"
       },
       "headers": {
         "user-agent": "This is a fake user agent"

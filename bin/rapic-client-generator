@@ -1,0 +1,36 @@
+#!/usr/bin/env python3
+import argparse
+import json
+import os
+from rapic.tools import generate
+
+
+def cmdline_args():
+    p = argparse.ArgumentParser(prog='Rapic API Client Generator',
+                                description="""
+                                        Automatically generate rapic api client json files from saved requests files.
+                                        """,
+                                formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    p.add_argument("tool",
+                   help="The original tool the request file was created from e.g burp", choices=['burp'])
+    p.add_argument("client_name",
+                   help="The rapic api client name ")
+    p.add_argument("files",
+                   help="The list of request files sperated by comma (,) rapic generator "
+                        "is going to process and convert to rapic api client json files",
+                   type=str)
+
+    return p.parse_args()
+
+
+if __name__ == '__main__':
+
+    args = cmdline_args()
+    tool = args.tool
+    client = args.client_name
+    files = [item for item in args.files.split(',')]
+
+    api_json = generate.burp_request_files(client, files)
+    client_file = os.path.join(os.getcwd(), client) + '.json'
+    with open(client_file, 'w') as e:
+        e.write(json.dumps(api_json))

@@ -25,15 +25,16 @@
       "scheme": "http",
       "method": "GET",
       "is_json": false,
-      "url": "http://httpbin.org/headers",
+      "url": "http://httpbin.org/headers?ignore_host_scheme_path_above_and_use_this_url",
       "url_query": {
-        "custom": "specific_to_this_request"
+        "custom": "specific_to_this_request_but_not_used_since_full_url_is_specified_above"
       },
       "url_params": {
-        "custom": "specific_to_this_request"
+        "custom": "specific_to_this_request_but_not_used_since_full_url_is_specified_above"
       },
       "url_fragment": "",
       "data": {
+        "custom": "specific_to_this_request"
       },
       "headers": {
         "All-Request-Headers": "Overide_All_Previous_Headers"

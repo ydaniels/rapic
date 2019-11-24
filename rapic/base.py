@@ -13,7 +13,7 @@ class BaseClient:
         """Perform the actual http request by calling the name of the request (specified when saving it in burp)
             with the needed data passed in kwargs
         : request_name : The name of the http request you want to perform by this client
-        :kwargs : e.g {'post_data': {'name': 'Ben'}, 'url_data' : {'return_all_info' : True }
+        :kwargs : e.g {'data': {'name': 'Ben'}, 'url_data' : {'return_all_info' : True }
         """
         pass
 

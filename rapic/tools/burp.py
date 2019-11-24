@@ -83,7 +83,7 @@ def create_endpoint(request_item):
         d['is_json'] = False
         if isinstance(post_data, str):
             d['is_json'] = True
-        d['url'] = unquote(url)
+        #d['url'] = unquote(url)
         d['url_query'] = url_data
         d['url_params'] = urlparse(url).params
         d['url_fragment'] = urlparse(url).fragment

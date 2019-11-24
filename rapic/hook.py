@@ -1,4 +1,4 @@
-class APIHook:
+class APIClientHook:
     """Allow access to necessary requests data by giving a client the ability to hook
         request and response data before it is sent to or returned from a server.
         There are 6 different hook type which determines what data is sent to the client for hooking
@@ -76,7 +76,7 @@ class APIHook:
         return action_arg
 
     @classmethod
-    def hook_client_requests_obj(cls, client, requests):
+    def hook_client_prepared_request(cls, client, requests):
         """
         This gives the ability to hook a python-requests obj before its sent.
          the registered callback function will recieve the prepared request object before sending it to the server.
@@ -93,7 +93,7 @@ class APIHook:
         return request_func
 
     @classmethod
-    def hook_client_response_obj(cls, client, requests):
+    def hook_client_response(cls, client, requests):
         """
         This gives the ability to hook the return python-requests response obj
         :param client: the client to perform the hook for
@@ -108,7 +108,7 @@ class APIHook:
         return request_func
 
     @classmethod
-    def hook_client_request(cls, client, requests):
+    def hook_client_request_data(cls, client, requests):
         """
         This gives the ability to hook a full request in internal api client before its transformed
         to python-requests prepared requests
@@ -125,7 +125,7 @@ class APIHook:
         return request_func
 
     @classmethod
-    def hook_url_data(cls, client, requests):
+    def hook_client_url(cls, client, requests):
         """
         Run user hooks when generating url data
         :param client: the client to perform the hook for
@@ -140,7 +140,7 @@ class APIHook:
         return request_func
 
     @classmethod
-    def hook_post_data(cls, client, requests):
+    def hook_client_body_data(cls, client, requests):
         """
         Run user hooks on request body when posting, deleting or putting data to a server
         :param client:
@@ -155,7 +155,7 @@ class APIHook:
         return action_function
 
     @classmethod
-    def hook_header(cls, client, requests):
+    def hook_client_header(cls, client, requests):
         """
          Register client func to run and process request header before making actual request to the server
          Good for including timestamp or signature that must be present in headers along with a particular requests

@@ -1,6 +1,14 @@
 import time
 
 
+class dotdict(dict):
+    """dot.notation access to dictionary attributes"""
+    __getattr__ = dict.get
+    __setattr__ = dict.__setitem__
+    __delattr__ = dict.__delitem__
+
+
+
 def delete_keys(data):
     """
     set  data values  to None
@@ -10,9 +18,3 @@ def delete_keys(data):
     return {key: None for key in data}
 
 
-def get_time_stamp():
-    return str(int(time.time()))
-
-
-def get_time_stamp_ms():
-    return str(int(time.time() * 1000))

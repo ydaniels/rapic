@@ -1,14 +1,16 @@
 {
   "httpbin": {
+
     "pages": [
       "homepage",
       "second_page"
     ],
     "homepage": {
       "test_requests_patch_method": {
-        "path": "/patch",
+         "host": "httpbin.org",
+        "scheme": "http",
+        "path": "/anything/{anything}",
         "method": "PATCH",
-        "url": "http://httpbin.org/patch",
         "url_query": {
         },
         "data": {
@@ -24,12 +26,11 @@
     },
     "second_page": {
       "test_requests_delete_method": {
-        "path": "/delete",
+        "path": "/anything/{user_id}",
         "host": "httpbin.org",
         "scheme": "http",
         "method": "DELETE",
-        "is_json": true,
-        "url": "http://httpbin.org/delete",
+        "is_json": false,
         "url_query": {
         },
         "data": {
