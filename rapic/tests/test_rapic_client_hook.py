@@ -33,7 +33,7 @@ class TestRapicClientHook(unittest.TestCase):
             @APIClientHook.hook_client_header(client='httpbin',
                                               requests=['get_my_headers',
                                                         'get_my_ip'])
-            def set_dynamic_data_on_header(data, **kwargs):
+            def set_dynamic_data_on_header(self, data, **kwargs):
                 data['timestamp'] = time_st + data['All-Request-Headers']
                 return data
 
@@ -50,7 +50,7 @@ class TestRapicClientHook(unittest.TestCase):
         class MyApiClient(APIClient):
             @APIClientHook.hook_client_body_data(client='httpbin_2',
                                                  requests=['*'])
-            def overide_body_data(data, **kwargs):
+            def overide_body_data(self, data, **kwargs):
                 return new_body_data
 
         httpbin = MyApiClient('httpbin_2', self.httpbin_file_5)
@@ -65,7 +65,7 @@ class TestRapicClientHook(unittest.TestCase):
 
             @APIClientHook.hook_client_url(client='httpbin_3',
                                            requests=['*'])  # register this for all the hooks in client 3
-            def overide_url_query(url, **kwargs):
+            def overide_url_query(self, url, **kwargs):
                 return new_url
 
         httpbin = MyApiClient('httpbin_3', self.httpbin_file_5)
@@ -83,7 +83,7 @@ class TestRapicClientHook(unittest.TestCase):
             @APIClientHook.hook_client_request_data(client='httpbin',
                                                     requests=['get_my_headers',
                                                               'get_my_ip'])
-            def set_http_signature_on_header(data, **kwargs):
+            def set_http_signature_on_header(self, data, **kwargs):
                 sign_request = data['url'] + data['method'] + urlencode(data['body_data'])
                 m = hashlib.sha256()
                 m.update(bytes(sign_request, encoding='utf8'))
@@ -105,7 +105,7 @@ class TestRapicClientHook(unittest.TestCase):
 
             @APIClientHook.hook_client_prepared_request(client='httpbin',
                                                         requests=['get_my_ip'])
-            def set_http_signature_on_header(req, **kwargs):
+            def set_http_signature_on_header(self, req, **kwargs):
                 req.method = 'POST'
                 return req
 
@@ -125,7 +125,7 @@ class TestRapicClientHook(unittest.TestCase):
 
             @APIClientHook.hook_client_response(client='httpbin',
                                                 requests=['*'])  # register this for all the hooks
-            def return_custom_api_obj(response, **kwargs):
+            def return_custom_api_obj(self, response, **kwargs):
                 if kwargs.get('request_name') == 'get_my_headers':
                     user_agent = UserAgentObject(response.content)
                     return user_agent

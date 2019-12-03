@@ -193,5 +193,5 @@ class APIClientHook:
             return data
         hook_funcs = hook_type_store.get(request_name, None) or hook_type_store.get('*')
         for func in hook_funcs:
-            data = func(data, request_name=request_name, client_name=self.name, hook_type=hook_type)
+            data = func(self,  data, request_name=request_name, client_name=self.name, hook_type=hook_type)
         return data
