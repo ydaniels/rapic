@@ -1,14 +1,20 @@
+import os
 from setuptools import setup, find_packages
 
+
+here = os.path.abspath(os.path.dirname(__file__))
 
 def readme():
     with open('README.md') as f:
         return f.read()
 
+about = {}
+with open(os.path.join(here, 'rapic', '__version__.py'), 'r') as f:
+    exec(f.read(), about)
 
-setup(name='rapic',
-      version='0.1.0',
-      description='Automatically generate api client libraries/sdk for websites, online services and 3rd party private api.',
+setup(name=about['__title__'],
+      version=about['__version__'],
+      description=about['__description__'],
 
       long_description=readme(),
       long_description_content_type='text/markdown',
@@ -18,10 +24,10 @@ setup(name='rapic',
           'Programming Language :: Python :: 3.6',
       ],
       keywords='rapic web network internet reverse engineering sdk library api client apiclient',
-      url='https://github.com/ydaniels/rapic',
-      author='Yomi D',
-      author_email='yomid4all@gmail.com',
-      license='MIT',
+      url=about['__url__'],
+      author=about['__author__'],
+      author_email=about['__author_email__'],
+      license=about['__license__'],
       packages=  find_packages(),
       include_package_data=True,
       install_requires=[
