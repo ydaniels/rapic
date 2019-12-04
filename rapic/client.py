@@ -4,7 +4,7 @@ from urllib.parse import urlencode, urlunparse, ParseResult
 from rapic.hook import APIClientHook
 from rapic.base import BaseClient
 from rapic.connection.request import RapicRequestClient
-from rapic.tools import delete_keys
+from rapic.tools import delete_keys, dict_merge
 from rapic.exceptions import RapicException, RapicMissingUrlData
 
 
@@ -131,23 +131,23 @@ class APIClient(APIClientHook, BaseClient):
 
     def get_headers(self, user_headers, request):
         headers = {}
-        headers.update(self.client.get("default_headers", {}))
-        headers.update(request.get("headers", {}))
-        headers.update(user_headers or {})
+        headers = dict_merge(headers, self.client.get("default_headers", {}))
+        headers = dict_merge(headers, request.get("headers", {}))
+        headers = dict_merge(headers, user_headers or {})
         return headers
 
     def get_url_query(self, user_url_query, request):
         url_query_data = {}
-        url_query_data.update(self.client.get("default_url_query", {}))
-        url_query_data.update(request.get("url_query", {}))
-        url_query_data.update(user_url_query or {})
+        url_query_data = dict_merge(url_query_data, self.client.get("default_url_query", {}))
+        url_query_data = dict_merge(url_query_data, request.get("url_query", {}))
+        url_query_data = dict_merge(url_query_data, user_url_query or {})
         return url_query_data
 
     def get_body_data(self, user_body_data, request):
         body_data = {}
-        body_data.update(self.client.get("default_data", {}))
-        body_data.update(request.get("data", {}))
-        body_data.update(user_body_data or {})
+        body_data = dict_merge(body_data, self.client.get("default_data", {}))
+        body_data = dict_merge(body_data, request.get("data", {}))
+        body_data = dict_merge(body_data, user_body_data or {})
         return body_data
 
     def build_url(self, request_data, url_query, url_data):
@@ -170,7 +170,7 @@ class APIClient(APIClientHook, BaseClient):
             raise RapicMissingUrlData(e, request_data=request_data)
         return url
 
-    def execute_request(self, request_data, headers=None, url_data=None, data=None, json=None, append_url=None,
+    def execute_request(self, request_data, headers=None, url_data=None, data=None, json=None, url_query=None,
                         dry_run=False):
         """
          Takes a request and execute the request using created session from RequestClient
@@ -182,13 +182,13 @@ class APIClient(APIClientHook, BaseClient):
         :param url_data: Url data format and over-ride saved default url data
         :param data: Post data to over-ride saved body data
         :param json: Post data to over-ride saved body data in json format
-        :param append_url: you can update external field not recorded in the json file url part using append_url dict
+        :param url_query: you can update external field not recorded in the json file url part using append_url dict
                            E.G append_url = {'load_false':1} -> url   = url + ?load_false=1
         :param dry_run : Do not perform actual requests and returns the prepared request to be sent to server
         :return: Response Object
         """
 
-        request_data = self.build_request_data(request_data, data or json, url_data, headers, append_url)
+        request_data = self.build_request_data(request_data, data or json, url_data, headers, url_query)
         is_json = bool(json)
         new_req_obj = self._prepare_request(request_data, is_json)
         if dry_run:
@@ -213,7 +213,7 @@ class APIClient(APIClientHook, BaseClient):
         new_req_obj = self._run_hook_func(request_name, prep_req_obj, self.REQUESTS_OBJ_HOOK_TYPE)
         return new_req_obj
 
-    def build_request_data(self, request_data, data, url_data, headers, append_url):
+    def build_request_data(self, request_data, data, url_data, headers, user_url_query):
 
         # Run client registered function before a request is performed
         # function registered as header,url, post hooks will recieve headers, url data, post data as an arguement
@@ -222,7 +222,7 @@ class APIClient(APIClientHook, BaseClient):
         # data for each of them respectively before the request is being done
         request_name = request_data['request_name']
         built_headers = self.get_headers(headers, request_data)
-        url_query = self.get_url_query(append_url, request_data)
+        url_query = self.get_url_query(user_url_query, request_data)
         body_data = self.get_body_data(data, request_data)
         url = self.build_url(request_data, url_query, url_data)
         new_header = self._run_hook_func(request_name, built_headers, self.HEADER_HOOK_TYPE)
