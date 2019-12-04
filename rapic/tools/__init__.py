@@ -1,12 +1,24 @@
-import time
+import json
+
+def flatten_hook(obj):
+    for key, value in obj.items():
+        if isinstance(value, str):
+            try:
+                obj[key] = json.loads(value, object_hook=flatten_hook)
+            except ValueError:
+                pass
+    return obj
 
 
-class dotdict(dict):
+def json_loads_nested(data):
+    return json.loads(data, object_hook=flatten_hook)
+
+
+class DotDict(dict):
     """dot.notation access to dictionary attributes"""
     __getattr__ = dict.get
     __setattr__ = dict.__setitem__
     __delattr__ = dict.__delitem__
-
 
 
 def delete_keys(data):

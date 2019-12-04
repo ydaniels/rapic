@@ -16,9 +16,9 @@ class TestRapicClient(unittest.TestCase):
         httpbin_file_3 = os.path.join(curr_dir, 'httpbin_3.json')
         httpbin_file_4 = os.path.join(curr_dir, 'httpbin_4.json')
         self.httpbin = APIClient('httpbin', httpbin_file)
-        self.httpbin_2 = APIClient('httpbin', httpbin_file_2)
+        self.httpbin_2 = APIClient('httpbin', httpbin_file_2, loads_nested=True)
         self.httpbin_3 = APIClient('httpbin', httpbin_file_3)
-        self.httpbin_4 = APIClient('httpbin', httpbin_file_4)
+        self.httpbin_4 = APIClient('httpbin', httpbin_file_4, loads_nested=True)
 
     def test_client_can_load_client_requests_directly(self):
         """Request can be specified in json file under a client directly

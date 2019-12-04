@@ -84,7 +84,7 @@ class TestRapicClientHook(unittest.TestCase):
                                                     requests=['get_my_headers',
                                                               'get_my_ip'])
             def set_http_signature_on_header(self, data, **kwargs):
-                sign_request = data['url'] + data['method'] + urlencode(data['body_data'])
+                sign_request = data['url'] + data['method'] + urlencode(data['data'])
                 m = hashlib.sha256()
                 m.update(bytes(sign_request, encoding='utf8'))
                 signature = m.hexdigest()

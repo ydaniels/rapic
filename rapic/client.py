@@ -4,7 +4,7 @@ from urllib.parse import urlencode, urlunparse, ParseResult
 from rapic.hook import APIClientHook
 from rapic.base import BaseClient
 from rapic.connection.request import RapicRequestClient
-from rapic.tools import delete_keys, dict_merge
+from rapic.tools import delete_keys, dict_merge, json_loads_nested
 from rapic.exceptions import RapicException, RapicMissingUrlData
 
 
@@ -39,9 +39,13 @@ class APIClient(APIClientHook, BaseClient):
     def __init__(self, client_name, request_file, **kwargs):
         self.file_location = request_file
         self.name = client_name
+        load_nested = kwargs.pop('loads_nested', None)
         self.request = RapicRequestClient(client_name, **kwargs)
         with open(request_file, 'r') as j:
-            client_file = lib_json.loads(j.read())
+            if load_nested:
+                client_file = json_loads_nested(j.read())
+            else:
+                client_file = lib_json.loads(j.read())
             self.client = client_file.get(client_name) or client_file
             self.request_data_list = {}
             APIClient.CLIENT_REQUESTS[client_name] = self.request_data_list
@@ -77,7 +81,7 @@ class APIClient(APIClientHook, BaseClient):
         if not request_data:
             raise RapicException('Request %s does not exist please check loaded requests and try again ' % request_name)
         url_data = request_data['url_data']
-        post_data = request_data['body_data']
+        post_data = request_data['data']
 
         if self.LOGIN_REQUEST_NAME == request_name:
             login_request = True
@@ -232,7 +236,7 @@ class APIClient(APIClientHook, BaseClient):
         request_data['url'] = new_url
         request_data['headers'] = new_header
         request_data['url_query'] = url_query
-        request_data['body_data'] = new_post_data
+        request_data['data'] = new_post_data
 
         request_data = self._run_hook_func(request_name, request_data, self.REQUEST_HOOK_TYPE)
 

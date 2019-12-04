@@ -21,7 +21,7 @@ class RapicRequestClient:
         method = request_data['method']
         url = request_data['url']
         headers = self.clean_headers(request_data['headers'])
-        data = request_data['body_data']
+        data = request_data['data']
         if is_json:
             req = requests.Request(method, url, json=data, headers=headers)
         else:
@@ -46,7 +46,7 @@ class RapicRequestClient:
 
     @staticmethod
     def clean_headers(headers):
-        return {x.strip(): y.strip() for x, y in headers.items()}
+        return {x.strip(): str(y).strip() for x, y in headers.items()}
 
     def close(self):
         self.session.close()
