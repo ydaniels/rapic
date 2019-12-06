@@ -4,7 +4,8 @@ class APIClientHook:
         There are 6 different hook type which determines what data is sent to the client for hooking
          REQUEST_HOOK_TYPE : A dictionary that contains parsed api client req dict
          HEADER_HOOK_TYPE :  Header dict
-         URL_DATA_HOOK_TYPE : Url args and values as dict
+         URL_HOOK_TYPE : Final  Url as value
+         URL_QUERY_HOOK_TYPE : Url query dict as value
          POST_DATA_HOOK_TYPE : Body data as dict
          REQUESTS_OBJ_HOOK_TYPE : Python-Requests prepared request obj
          RESPONSE_OBJ_HOOK_TYPE : Python-Requests response obj
@@ -13,10 +14,11 @@ class APIClientHook:
 
     REQUEST_HOOK_TYPE = 1
     HEADER_HOOK_TYPE = 2
-    URL_DATA_HOOK_TYPE = 3
+    URL_HOOK_TYPE = 3
     POST_DATA_HOOK_TYPE = 4
     REQUESTS_OBJ_HOOK_TYPE = 5
     RESPONSE_OBJ_HOOK_TYPE = 6
+    URL_QUERY_HOOK_TYPE = 7
 
     def __init__(self, name, **kwargs):
 
@@ -127,14 +129,29 @@ class APIClientHook:
     @classmethod
     def hook_client_url(cls, client, requests):
         """
-        Run user hooks when generating url data
+        Run user hooks on  generated url
         :param client: the client to perform the hook for
         :param requests: List of requests to run for
         :return:
         """
 
         def request_func(func):
-            cls.register_client_hooks(hook_type=cls.URL_DATA_HOOK_TYPE, requests=requests, client_name=client,
+            cls.register_client_hooks(hook_type=cls.URL_HOOK_TYPE, requests=requests, client_name=client,
+                                      func=func)
+
+        return request_func
+
+    @classmethod
+    def hook_client_url_query(cls, client, requests):
+        """
+        Run user hooks when generating url query data
+        :param client: the client to perform the hook for
+        :param requests: List of requests to run for
+        :return:
+        """
+
+        def request_func(func):
+            cls.register_client_hooks(hook_type=cls.URL_QUERY_HOOK_TYPE, requests=requests, client_name=client,
                                       func=func)
 
         return request_func

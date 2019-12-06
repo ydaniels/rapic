@@ -9,6 +9,7 @@ class RapicException(Exception):
         """
 
         self.request_data = kwargs.pop('request_data', None)
+        self.client = kwargs.pop('client', None)
 
 
 class RapicMissingUrlData(RapicException):

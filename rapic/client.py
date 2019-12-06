@@ -226,11 +226,15 @@ class APIClient(APIClientHook, BaseClient):
         # data for each of them respectively before the request is being done
         request_name = request_data['request_name']
         built_headers = self.get_headers(headers, request_data)
-        url_query = self.get_url_query(user_url_query, request_data)
-        body_data = self.get_body_data(data, request_data)
-        url = self.build_url(request_data, url_query, url_data)
         new_header = self._run_hook_func(request_name, built_headers, self.HEADER_HOOK_TYPE)
-        new_url = self._run_hook_func(request_name, url, self.URL_DATA_HOOK_TYPE)
+
+        url_query = self.get_url_query(user_url_query, request_data)
+        new_url_query = self._run_hook_func(request_name, url_query, self.URL_QUERY_HOOK_TYPE)
+
+        url = self.build_url(request_data, new_url_query, url_data)
+        new_url = self._run_hook_func(request_name, url, self.URL_HOOK_TYPE)
+
+        body_data = self.get_body_data(data, request_data)
         new_post_data = self._run_hook_func(request_name, body_data, self.POST_DATA_HOOK_TYPE)
 
         request_data['url'] = new_url

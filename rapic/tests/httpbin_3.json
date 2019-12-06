@@ -12,6 +12,7 @@
         "path": "/anything/{anything}",
         "method": "PATCH",
         "url_query": {
+          "query" : "old_query_value"
         },
         "data": {
         },

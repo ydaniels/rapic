@@ -72,6 +72,23 @@ class TestRapicClientHook(unittest.TestCase):
         req = httpbin.get_my_headers(dry_run=True)
         self.assertEqual(new_url, req.prepared_request.url)
 
+    def test_can_hook_url_query(self):
+        """The query part of a url of a client can be changed just before being sent to the server"""
+        new_query_value = 'new_query_value'
+        this = self
+        class MyApiClient(APIClient):
+
+            @APIClientHook.hook_client_url_query(client='httpbin',
+                                           requests=['*'])  # register this for all the hooks in client 3
+            def overide_url_query(self, data, **kwargs):
+                this.assertIn('second_key', data)
+                data['query'] = new_query_value
+                return data
+
+        httpbin = MyApiClient('httpbin', self.httpbin_file_3)
+        req = httpbin.test_requests_patch_method(url_data={'anything': "1"}, url_query = {'second_key': 'second_value'}, dry_run=True)
+        self.assertIn(new_query_value, req.prepared_request.url)
+
     def test_can_hook_request_data(self):
         """The full request data can be hooked in case there is any compulsory
         processing that utilizes all the part of a request e.g signature signing of a request
