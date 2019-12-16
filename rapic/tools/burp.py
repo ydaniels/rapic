@@ -48,7 +48,7 @@ def get_header(header):
         if 'Content-Length' in h:
             continue
         if ':' in h:
-            header_key, header_value = h.split(':')
+            header_key, header_value = h.split(':', 1)
             head[header_key.lstrip().rstrip()] = unquote(header_value.lstrip().rstrip())
     return head
 

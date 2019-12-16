@@ -23,6 +23,42 @@ class TestRapicClientHook(unittest.TestCase):
         self.httpbin_file_3 = os.path.join(curr_dir, 'httpbin_3.json')
         self.httpbin_file_5 = os.path.join(curr_dir, 'httpbin_5.json')
 
+    def test_hook_can_exclude_requests(self):
+        """Requests can excluded from running a hook even when it has been set"""
+        time_st = str(time.time())
+
+        class MyApiClient(APIClient):
+
+            @APIClientHook.hook_client_header(client='httpbin_6',
+                                              requests=['get_my_headers',
+                                                        'get_my_ip'], exclude_requests=['get_my_ip'])
+            def set_dynamic_data_on_header(self, data, **kwargs):
+                data['timestamp'] = time_st + data['All-Request-Headers']
+                return data
+
+        httpbin = MyApiClient('httpbin_6', self.httpbin_file_5)
+        req = httpbin.get_my_ip(dry_run=True)
+        self.assertNotIn('timestamp', req.prepared_request.headers)
+
+    def test_hook_can_run_explicit_excluded_requests(self):
+        """Requests should run if its specified expicitly even if it is
+         excluded from running"""
+        time_st = str(time.time())
+
+        class MyApiClient(APIClient):
+
+            @APIClientHook.hook_client_header(client='httpbin_7',
+                                              requests=['get_my_headers'], exclude_requests=['*'])
+            def set_dynamic_data_on_header(self, data, **kwargs):
+                data['timestamp'] = time_st
+                return data
+
+        httpbin = MyApiClient('httpbin_7', self.httpbin_file_5)
+        req = httpbin.get_my_headers(dry_run=True)
+        self.assertIn('timestamp', req.prepared_request.headers)
+
+
+
     def test_can_hook_request_data_header(self):
         """Headers can be accessed and updated with
          custom parameters before being sent to the server"""
@@ -79,7 +115,7 @@ class TestRapicClientHook(unittest.TestCase):
         class MyApiClient(APIClient):
 
             @APIClientHook.hook_client_url_query(client='httpbin',
-                                           requests=['*'])  # register this for all the hooks in client 3
+                                           requests=['*'])  # register this for all the requests in client 3
             def overide_url_query(self, data, **kwargs):
                 this.assertIn('second_key', data)
                 data['query'] = new_query_value

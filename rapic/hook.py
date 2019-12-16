@@ -42,7 +42,7 @@ class APIClientHook:
         cls.HOOK_STORE[hook_type][client_name] = dict()
 
     @classmethod
-    def register_client_hooks(cls, hook_type, requests, client_name, func):
+    def register_client_hooks(cls, hook_type, requests, client_name, func, exclude_requests=None):
         """
             Save all hooks and functions per client per hook type that are going
             to be called for a client before a request is made
@@ -52,11 +52,13 @@ class APIClientHook:
                         for all requests made by the client
         :param client_name: The api client this hook is registered for
         :param func: The function to call for the hook
+        :param exclude_requests: List of requests name to exclude this hook from running for
         :return: decorated func
         """
         if not requests:
             return
-
+        if exclude_requests is None:
+            exclude_requests = []
         if hook_type not in cls.HOOK_STORE:
             cls.create_type_hooks_store(hook_type)
         if client_name not in cls.HOOK_STORE[hook_type]:
@@ -68,9 +70,9 @@ class APIClientHook:
         for request in requests:
 
             if request not in cls.HOOK_STORE[hook_type][client_name]:
-                cls.HOOK_STORE[hook_type][client_name][request] = [func]
+                cls.HOOK_STORE[hook_type][client_name][request] = [(func, exclude_requests)]
             else:
-                cls.HOOK_STORE[hook_type][client_name][request].append(func)
+                cls.HOOK_STORE[hook_type][client_name][request].append((func, exclude_requests))
 
         def action_arg(*args, **kwargs):
             func(*args, **kwargs)
@@ -78,7 +80,7 @@ class APIClientHook:
         return action_arg
 
     @classmethod
-    def hook_client_prepared_request(cls, client, requests):
+    def hook_client_prepared_request(cls, client, requests, exclude_requests=None):
         """
         This gives the ability to hook a python-requests obj before its sent.
          the registered callback function will recieve the prepared request object before sending it to the server.
@@ -90,12 +92,12 @@ class APIClientHook:
 
         def request_func(func):
             cls.register_client_hooks(hook_type=cls.REQUESTS_OBJ_HOOK_TYPE, requests=requests, client_name=client,
-                                      func=func)
+                                      func=func, exclude_requests=exclude_requests)
 
         return request_func
 
     @classmethod
-    def hook_client_response(cls, client, requests):
+    def hook_client_response(cls, client, requests, exclude_requests=None):
         """
         This gives the ability to hook the return python-requests response obj
         :param client: the client to perform the hook for
@@ -105,12 +107,12 @@ class APIClientHook:
 
         def request_func(func):
             cls.register_client_hooks(hook_type=cls.RESPONSE_OBJ_HOOK_TYPE, requests=requests, client_name=client,
-                                      func=func)
+                                      func=func, exclude_requests=exclude_requests)
 
         return request_func
 
     @classmethod
-    def hook_client_request_data(cls, client, requests):
+    def hook_client_request_data(cls, client, requests, exclude_requests=None):
         """
         This gives the ability to hook a full request in internal api client before its transformed
         to python-requests prepared requests
@@ -122,12 +124,12 @@ class APIClientHook:
         """
 
         def request_func(func):
-            cls.register_client_hooks(hook_type=cls.REQUEST_HOOK_TYPE, requests=requests, client_name=client, func=func)
+            cls.register_client_hooks(hook_type=cls.REQUEST_HOOK_TYPE, requests=requests, client_name=client, func=func, exclude_requests=exclude_requests)
 
         return request_func
 
     @classmethod
-    def hook_client_url(cls, client, requests):
+    def hook_client_url(cls, client, requests, exclude_requests=None):
         """
         Run user hooks on  generated url
         :param client: the client to perform the hook for
@@ -137,12 +139,12 @@ class APIClientHook:
 
         def request_func(func):
             cls.register_client_hooks(hook_type=cls.URL_HOOK_TYPE, requests=requests, client_name=client,
-                                      func=func)
+                                      func=func, exclude_requests=exclude_requests)
 
         return request_func
 
     @classmethod
-    def hook_client_url_query(cls, client, requests):
+    def hook_client_url_query(cls, client, requests, exclude_requests=None):
         """
         Run user hooks when generating url query data
         :param client: the client to perform the hook for
@@ -152,12 +154,12 @@ class APIClientHook:
 
         def request_func(func):
             cls.register_client_hooks(hook_type=cls.URL_QUERY_HOOK_TYPE, requests=requests, client_name=client,
-                                      func=func)
+                                      func=func, exclude_requests=exclude_requests)
 
         return request_func
 
     @classmethod
-    def hook_client_body_data(cls, client, requests):
+    def hook_client_body_data(cls, client, requests, exclude_requests=None):
         """
         Run user hooks on request body when posting, deleting or putting data to a server
         :param client:
@@ -167,12 +169,12 @@ class APIClientHook:
 
         def action_function(request_func):
             cls.register_client_hooks(hook_type=cls.POST_DATA_HOOK_TYPE, requests=requests, client_name=client,
-                                      func=request_func)
+                                      func=request_func, exclude_requests=exclude_requests)
 
         return action_function
 
     @classmethod
-    def hook_client_header(cls, client, requests):
+    def hook_client_header(cls, client, requests, exclude_requests=None):
         """
          Register client func to run and process request header before making actual request to the server
          Good for including timestamp or signature that must be present in headers along with a particular requests
@@ -188,7 +190,7 @@ class APIClientHook:
         """
 
         def req_func(func):
-            cls.register_client_hooks(hook_type=cls.HEADER_HOOK_TYPE, requests=requests, client_name=client, func=func)
+            cls.register_client_hooks(hook_type=cls.HEADER_HOOK_TYPE, requests=requests, client_name=client, func=func, exclude_requests=exclude_requests)
 
         return req_func
 
@@ -209,6 +211,10 @@ class APIClientHook:
         if request_name not in hook_type_store and '*' not in hook_type_store:
             return data
         hook_funcs = hook_type_store.get(request_name, None) or hook_type_store.get('*')
-        for func in hook_funcs:
+        for func, excluded_requests in hook_funcs:
+            if request_name in excluded_requests:
+                continue
+            elif '*' in excluded_requests and request_name not in hook_type_store:
+                continue
             data = func(self,  data, request_name=request_name, client_name=self.name, hook_type=hook_type)
         return data
