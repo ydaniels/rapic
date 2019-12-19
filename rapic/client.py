@@ -175,7 +175,7 @@ class APIClient(APIClientHook, BaseClient):
         return url
 
     def execute_request(self, request_data, headers=None, url_data=None, data=None, json=None, url_query=None,
-                        dry_run=False):
+                        dry_run=False, **kwargs):
         """
          Takes a request and execute the request using created session from RequestClient
          you can also pass headers, url data,  post data directly to override headers saved in the rapic json file.
@@ -197,15 +197,15 @@ class APIClient(APIClientHook, BaseClient):
         new_req_obj = self._prepare_request(request_data, is_json)
         if dry_run:
             req = copy.deepcopy(self.request)
-            req.set_prepared_request(new_req_obj)
+            req.set_prepared_request(new_req_obj, **kwargs)
             return req
 
-        response = self.run(request_data, new_req_obj)
+        response = self.run(request_data, new_req_obj, **kwargs)
         return response
 
-    def run(self, request_data, req_ob):
+    def run(self, request_data, req_ob, **kwargs):
         request_name = request_data['request_name']
-        response = self.request.run(req_ob)
+        response = self.request.run(req_ob, **kwargs)
         response = self._run_hook_func(request_name, response, self.RESPONSE_OBJ_HOOK_TYPE)
         return response
 

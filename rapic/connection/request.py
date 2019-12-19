@@ -30,17 +30,22 @@ class RapicRequestClient:
         prepped = self.session.prepare_request(req)
         return prepped
 
-    def set_prepared_request(self, prepped_req):
+    def set_prepared_request(self, prepped_req, **kwargs):
+        if kwargs:
+            self.request_kwargs.update(kwargs)
         self.prepared_request = prepped_req
 
-    def run(self, prepped_req=None):
+    def run(self, prepped_req=None, **kwargs):
         """
         Take prepared request from client and do actual sending by  using request session
         :param prepped_req:   <PreparedRequest>
         :return:  <Response>
         """
+        sending_data = self.request_kwargs.copy()
+        if kwargs:
+            sending_data.update(kwargs)
         resp = self.session.send(prepped_req or self.prepared_request,
-                                 **self.request_kwargs
+                                 **sending_data
                                  )
         return resp
 
