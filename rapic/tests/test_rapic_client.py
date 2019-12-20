@@ -2,6 +2,7 @@
 import unittest
 import json
 import os
+import requests
 from urllib.parse import urlencode, urlparse, quote
 from rapic.client import APIClient
 from rapic.exceptions import RapicException, RapicMissingUrlData
@@ -11,14 +12,19 @@ class TestRapicClient(unittest.TestCase):
 
     def setUp(self):
         curr_dir = os.path.dirname(__file__)
+
         httpbin_file = os.path.join(curr_dir, 'httpbin.json')
         httpbin_file_2 = os.path.join(curr_dir, 'httpbin_2.json')
         httpbin_file_3 = os.path.join(curr_dir, 'httpbin_3.json')
         httpbin_file_4 = os.path.join(curr_dir, 'httpbin_4.json')
+
+        self.bad_proxies = {'http':'http://10.10.1.11:1080',  'https':'https://10.10.1.11:1080'}
+
         self.httpbin = APIClient('httpbin', httpbin_file)
         self.httpbin_2 = APIClient('httpbin', httpbin_file_2, loads_nested=True)
         self.httpbin_3 = APIClient('httpbin', httpbin_file_3)
         self.httpbin_4 = APIClient('httpbin', httpbin_file_4, loads_nested=True)
+        self.httpbin_5 = APIClient('httpbin', httpbin_file_4, loads_nested=True, proxies = self.bad_proxies, timeout=3)
 
     def test_client_can_load_client_requests_directly(self):
         """Request can be specified in json file under a client directly
@@ -226,6 +232,17 @@ class TestRapicClient(unittest.TestCase):
         response = self.httpbin_4.test_requests_delete_method()
         self.assertEqual(response.request.method, 'DELETE')
         self.assertEqual(response.status_code, 200)
+
+    def test_client_request_can_take_proxies_directly(self):
+        """A client can make a request by overiding successfully"""
+        bad_proxies = {'http': 'http://20.10.1.11:1080', 'https': 'https://20.10.1.11:1080'}
+        self.assertRaises(requests.exceptions.ConnectTimeout, self.httpbin_5.test_requests_delete_method, proxies=bad_proxies )
+
+    def test_client_can_take_proxies_directly(self):
+        """A client can make a request by overiding successfully"""
+
+        self.assertRaises(requests.exceptions.ConnectTimeout, self.httpbin_5.test_requests_delete_method,
+                         )
 
     def tearDown(self):
         self.httpbin.close()

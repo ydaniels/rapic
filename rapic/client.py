@@ -4,7 +4,7 @@ from urllib.parse import urlencode, urlunparse, ParseResult
 from rapic.hook import APIClientHook
 from rapic.base import BaseClient
 from rapic.connection.request import RapicRequestClient
-from rapic.tools import delete_keys, dict_merge, json_loads_nested
+from rapic.tools import dict_merge, json_loads_nested
 from rapic.exceptions import RapicException, RapicMissingUrlData
 
 
@@ -29,12 +29,7 @@ class APIClient(APIClientHook, BaseClient):
 
      """
 
-    IGNORE_URL_FIELDS = []
-    IGNORE_POST_FIELDS = []
-    LOGIN_REQUEST_NAME = ''
-    LOGOUT_REQUEST_NAME = ''
     CLIENT_REQUESTS = {}
-    MAP_FIELDS = {}
 
     def __init__(self, client_name, request_file, **kwargs):
         self.file_location = request_file
@@ -50,73 +45,6 @@ class APIClient(APIClientHook, BaseClient):
             self.request_data_list = {}
             APIClient.CLIENT_REQUESTS[client_name] = self.request_data_list
             super(APIClient, self).__init__(client_name, **kwargs)
-
-    @staticmethod
-    def _remove_ignored_fields(data, ignore_fields):
-        for field in ignore_fields:
-            if field in data:
-                del data[field]
-        return data
-
-    @staticmethod
-    def _confirm_request_data(data_fields, data):
-        final_data = {}
-        for field, value in data_fields.iteritems():
-            if field not in data or (field in data and data[field] is None):
-
-                if field in APIClient.MAP_FIELDS and data[APIClient.MAP_FIELDS[field]] is not None:
-                    final_data[field] = data[APIClient.MAP_FIELDS[field]]
-                else:
-                    raise RapicException('%s most be present in url fields ' % field)
-            else:
-                final_data[field] = data[field]
-        return final_data
-
-    def clean_request_data(self, request_name):
-        """Clean a request by removing uneccessary values and data from it"""
-        login_request = False
-        logout_request = False
-        extra_action = None
-        request_data = self.get_request_data(request_name)
-        if not request_data:
-            raise RapicException('Request %s does not exist please check loaded requests and try again ' % request_name)
-        url_data = request_data['url_data']
-        post_data = request_data['data']
-
-        if self.LOGIN_REQUEST_NAME == request_name:
-            login_request = True
-
-        if self.LOGOUT_REQUEST_NAME == request_name:
-            logout_request = True
-
-        url_data = self._remove_ignored_fields(url_data, APIClient.IGNORE_URL_FIELDS)
-        post_data = self._remove_ignored_fields(post_data, APIClient.IGNORE_POST_FIELDS)
-
-        if 'extra_requests' in request_data:
-            extra_action = request_name['extra_requests']
-        data = {'name': request_name, 'url_fields': delete_keys(url_data), 'post_fields': delete_keys(post_data),
-                'is_login_request': login_request, 'extra_requests': extra_action, 'is_logout_request': logout_request}
-
-        return data
-
-    def confirm_request_data(self, request_name, data):
-        """
-        Build a clean url_data and body_data and return the cleaned versions by removing unnecessary fields in each data
-        and mapping value to a new fields to new ones if necessary
-        :param request_name:
-        :param data:
-        :return:
-        """
-
-        cleaned_request_data = self.clean_request_data(request_name)
-
-        url_fields = cleaned_request_data.get('url_fields', {})
-        post_fields = cleaned_request_data.get('post_fields', {})
-
-        final_url_data = self._confirm_request_data(url_fields, data)
-        final_post_data = self._confirm_request_data(post_fields, data)
-
-        return final_url_data, final_post_data
 
     def perform_request(self, request_name, do_extra_requests=False, do_implicit_requests=False, **kwargs):
         """
@@ -247,24 +175,20 @@ class APIClient(APIClientHook, BaseClient):
         return request_data
 
     def get_request_data(self, request_name):
-        """Get a particular request by name from all requests this api client can perform"""
-        request_data = self.request_data_list.get(request_name)
-        if request_data:
-            return request_data
-        request_data = self.client.get(request_name)
+        """Get a particular request data copy by name from all requests this api client can perform"""
+        request_data = self.request_data_list.get(request_name) or self.client.get(request_name)
         if not request_data:
-
             pages = self.client.get('pages', [])
             for page_name in pages:
                 page = self.client[page_name]
                 if request_name in page:
                     request_data = page[request_name]
                     break
-        if not request_data:
-            raise RapicException(
-                'Are you sure request %s exist in json file. Sorry cannot execute request' % request_name)
-        self.request_data_list[request_name] = request_data
-        return request_data
+            if not request_data:
+                raise RapicException(
+                    'Are you sure request %s exist in json file. Sorry cannot execute request' % request_name)
+            self.request_data_list[request_name] = request_data
+        return copy.deepcopy(request_data)
 
     def get_total_requests_number(self):
         return len(self.request_data_list)
