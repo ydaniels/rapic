@@ -1,6 +1,30 @@
+import json
 import re
+import base64
+import  blackboxprotobuf
 from urllib.parse import urlparse
 from urllib.parse import unquote
+
+def clean_proto_dict(d):
+    new_d = dict()
+    for k,v in d.items():
+        if isinstance(v, dict):
+            res = clean_proto_dict(v)
+        elif isinstance(v, list):
+            res = [x.decode('utf8') for x in v]
+        elif isinstance(v, bytes):
+            try:
+               res = v.decode('utf8')
+            except UnicodeDecodeError:
+                res = str(v)
+        else:
+            res = v
+        new_d[k] = res
+    return new_d
+
+def get_body_proto(body):
+    bd = blackboxprotobuf.decode_message(body)
+    return clean_proto_dict(bd[0]), bd[1]
 
 
 def get_body_data(body_str_data):
@@ -67,19 +91,41 @@ def create_endpoint(request_item):
         url_data = get_url_data(url)
         method = item['method']
         request_body = item['request']['#text']  # get request body
-        request_body_lst = request_body.split("\n\n")
-        header_text = request_body_lst[0]
-        body_data_text = request_body_lst[1:]
+        if item['request']['@base64'] == 'true':
+            request_body = base64.b64decode(request_body)
+            request_body_lst = request_body.split(b"\r\n\r\n")
+            header_text = request_body_lst[0].decode("utf-8")
+            body_data_text = request_body_lst[1:]
+        else:
+            request_body_lst = request_body.split("\n\n")
+            header_text = request_body_lst[0]
+            body_data_text = request_body_lst[1:]
+
+
         head = get_header(header_text)
         post_data = {}
-        if body_data_text and len(body_data_text) > 0:
-            post_data = get_body_data(body_data_text[0])
+        content_type = head.get('Content-Type')
+        typedef = {}
+        if content_type and content_type.lower().strip() == 'application/x-protobuf':
+             post_data, typedef = get_body_proto(body_data_text[0])
+        elif content_type and content_type.lower().strip() == 'application/json':
+            bd = body_data_text[0]
+            if item['request']['@base64'] == 'true':
+                bd = bd.decode("utf-8")
+            post_data = bd
+        else:
+            if body_data_text and len(body_data_text) > 0:
+                bd = body_data_text[0]
+                if item['request']['@base64'] == 'true':
+                    bd = bd.decode("utf-8")
+                post_data = get_body_data(bd)
         d = dict()
         d['path'] = path
         d['host'] = location
         d['scheme'] = scheme
         d['method'] = method
         d['data'] = post_data
+        d['typedef'] = typedef
         d['is_json'] = False
         if isinstance(post_data, str):
             d['is_json'] = True

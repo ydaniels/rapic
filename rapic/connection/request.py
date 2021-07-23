@@ -1,12 +1,12 @@
 import requests
-
+import blackboxprotobuf
 
 class RapicRequestClient:
     """ This is very straight-forward using Python-Requests to make actual requests """
 
     def __init__(self, name, **kwargs):
         self.name = name
-        self.session = kwargs.pop('session', None) or requests.Session()
+        self.session = requests.Session()
         self.request_kwargs = kwargs
         self.prepared_request = None
 
@@ -22,6 +22,9 @@ class RapicRequestClient:
         url = request_data['url']
         headers = self.clean_headers(request_data['headers'])
         data = request_data['data']
+        typedef = request_data.get('typedef')
+        if typedef:
+            data = blackboxprotobuf.encode_message(data, typedef)
         if is_json:
             req = requests.Request(method, url, json=data, headers=headers)
         else:
