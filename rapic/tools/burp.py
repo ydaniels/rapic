@@ -10,7 +10,7 @@ def clean_proto_dict(d):
         if isinstance(v, dict):
             res = clean_proto_dict(v)
         elif isinstance(v, list):
-            res = [x.decode('utf8') for x in v]
+            res = [clean_proto_dict(x) if isinstance(x, dict) else x.decode('utf8') for x in v]
         elif isinstance(v, bytes):
             try:
                res = v.decode('utf8')
