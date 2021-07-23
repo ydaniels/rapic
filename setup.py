@@ -32,7 +32,8 @@ setup(name=about['__title__'],
       include_package_data=True,
       install_requires=[
           'requests',
-            'xmltodict'
+            'xmltodict',
+          'blackboxprotobuf'
       ],
       scripts=['bin/rapic-client-generator'],
       zip_safe=False)

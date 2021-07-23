@@ -1,7 +1,7 @@
 import json
 import re
 import base64
-import  blackboxprotobuf
+import blackboxprotobuf
 from urllib.parse import urlparse
 from urllib.parse import unquote
 
