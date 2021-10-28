@@ -105,6 +105,9 @@ def create_endpoint(request_item):
         post_data = {}
         content_type = head.get('Content-Type')
         typedef = {}
+        is_file_upload = False
+        if content_type and 'multipart/form-data' in content_type:
+            is_file_upload = True
         if content_type and content_type.lower().strip() == 'application/x-protobuf':
              post_data, typedef = get_body_proto(body_data_text[0])
         elif content_type and content_type.lower().strip() == 'application/json':
@@ -124,6 +127,7 @@ def create_endpoint(request_item):
         d['scheme'] = scheme
         d['method'] = method
         d['data'] = post_data
+        d['is_file'] = is_file_upload
         d['typedef'] = typedef
         d['is_json'] = False
         if isinstance(post_data, str):

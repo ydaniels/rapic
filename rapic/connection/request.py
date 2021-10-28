@@ -10,7 +10,7 @@ class RapicRequestClient:
         self.request_kwargs = kwargs
         self.prepared_request = None
 
-    def prepare_requests_request(self, request_data, is_json=False):
+    def prepare_requests_request(self, request_data, is_json=False, files=None, auth=None):
         """
         Prepares a request from an api client before sending it.
         A client can change anything in the prepared request before sending it
@@ -26,9 +26,9 @@ class RapicRequestClient:
         if typedef:
             data = blackboxprotobuf.encode_message(data, typedef)
         if is_json:
-            req = requests.Request(method, url, json=data, headers=headers)
+            req = requests.Request(method, url, json=data, files=files, auth=auth, headers=headers)
         else:
-            req = requests.Request(method, url, data=data, headers=headers)
+            req = requests.Request(method, url, data=data, files=files, auth=auth, headers=headers)
 
         prepped = self.session.prepare_request(req)
         return prepped

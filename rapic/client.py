@@ -102,7 +102,7 @@ class APIClient(APIClientHook, BaseClient):
             raise RapicMissingUrlData(e, request_data=request_data)
         return url
 
-    def execute_request(self, request_data, headers=None, url_data=None, data=None, json=None, url_query=None,
+    def execute_request(self, request_data, headers=None, url_data=None, data=None, files=None, auth=None, json=None, url_query=None,
                         dry_run=False, **kwargs):
         """
          Takes a request and execute the request using created session from RequestClient
@@ -122,7 +122,7 @@ class APIClient(APIClientHook, BaseClient):
 
         request_data = self.build_request_data(request_data, data or json, url_data, headers, url_query)
         is_json = bool(json)
-        new_req_obj = self._prepare_request(request_data, is_json)
+        new_req_obj = self._prepare_request(request_data, is_json, files, auth=auth)
         if dry_run:
             req = copy.deepcopy(self.request)
             req.set_prepared_request(new_req_obj, **kwargs)
@@ -137,10 +137,10 @@ class APIClient(APIClientHook, BaseClient):
         response = self._run_hook_func(request_name, response, self.RESPONSE_OBJ_HOOK_TYPE)
         return response
 
-    def _prepare_request(self, request_data, is_json):
+    def _prepare_request(self, request_data, is_json, files=None, auth=None):
         is_json = is_json or request_data.get('is_json')
         request_name = request_data['request_name']
-        prep_req_obj = self.request.prepare_requests_request(request_data, is_json)
+        prep_req_obj = self.request.prepare_requests_request(request_data, is_json, files=files, auth=auth)
 
         new_req_obj = self._run_hook_func(request_name, prep_req_obj, self.REQUESTS_OBJ_HOOK_TYPE)
         return new_req_obj
