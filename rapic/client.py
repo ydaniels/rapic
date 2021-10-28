@@ -76,6 +76,8 @@ class APIClient(APIClientHook, BaseClient):
         return url_query_data
 
     def get_body_data(self, user_body_data, request):
+        if not isinstance(user_body_data, dict):
+            return user_body_data or {}
         body_data = {}
         body_data = dict_merge(body_data, self.client.get("default_data", {}))
         body_data = dict_merge(body_data, request.get("data", {}))
