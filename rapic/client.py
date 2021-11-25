@@ -76,7 +76,8 @@ class APIClient(APIClientHook, BaseClient):
         return url_query_data
 
     def get_body_data(self, user_body_data, request):
-        if not isinstance(user_body_data, dict):
+        if user_body_data and not isinstance(user_body_data, dict):
+            #If user passed data and its not a dict it means user wants to replace all data totally
             return user_body_data or {}
         body_data = {}
         body_data = dict_merge(body_data, self.client.get("default_data", {}))
