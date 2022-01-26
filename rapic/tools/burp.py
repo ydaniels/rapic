@@ -106,18 +106,20 @@ def create_endpoint(request_item):
         content_type = head.get('Content-Type')
         typedef = {}
         is_file_upload = False
+        is_json = False
         if content_type and 'multipart/form-data' in content_type:
             is_file_upload = True
-        if content_type and content_type.lower().strip() == 'application/x-protobuf':
-             post_data, typedef = get_body_proto(body_data_text[0])
-        elif content_type and content_type.lower().strip() == 'application/json':
+        if content_type and content_type.lower().strip() == 'application/json':
+            is_json = True
+        if body_data_text and len(body_data_text) > 0:
             bd = body_data_text[0]
-            if item['request']['@base64'] == 'true':
-                bd = bd.decode("utf-8")
-            post_data = bd
-        else:
-            if body_data_text and len(body_data_text) > 0:
-                bd = body_data_text[0]
+            if content_type and content_type.lower().strip() == 'application/x-protobuf':
+                 post_data, typedef = get_body_proto(bd)
+            elif content_type and content_type.lower().strip() == 'application/json':
+                if item['request']['@base64'] == 'true':
+                    bd = bd.decode("utf-8")
+                post_data = bd
+            else:
                 if item['request']['@base64'] == 'true':
                     bd = bd.decode("utf-8")
                 post_data = get_body_data(bd)
@@ -129,9 +131,7 @@ def create_endpoint(request_item):
         d['data'] = post_data
         d['is_file'] = is_file_upload
         d['typedef'] = typedef
-        d['is_json'] = False
-        if isinstance(post_data, str):
-            d['is_json'] = True
+        d['is_json'] = is_json
         #d['url'] = unquote(url)
         d['url_query'] = url_data
         d['url_params'] = urlparse(url).params
