@@ -6,7 +6,8 @@ class RapicRequestClient:
 
     def __init__(self, name, **kwargs):
         self.name = name
-        self.session = requests.Session()
+        self.session = kwargs.pop('session', None) or requests.Session()
+        self.session.proxies = kwargs.pop('proxies', {})
         self.request_kwargs = kwargs
         self.prepared_request = None
 
